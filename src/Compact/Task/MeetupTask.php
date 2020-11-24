@@ -15,7 +15,7 @@ use pocketmine\item\Item;
 use pocketmine\entity\Entity;
 use pocketmine\utils\UUID;
 
-class UHCTask extends PluginTask
+class MeetupTask extends PluginTask
 {
 
     private $plugin;
@@ -31,8 +31,8 @@ class UHCTask extends PluginTask
         parent::__construct($plugin);
         $this->plugin = $plugin;
         $arena = $this->getPlugin()->getArena();
-        $arena->setGraceTime(15 * 60);
-        $arena->setTpallTime(25 * 60);
+        $arena->setGraceTime(1 * 60);
+        $arena->setTpallTime(8 * 60);
         $this->whitelist = $arena->getWhitelistTime();
         $this->starting = $arena->getStartTime();
         $this->time = $arena->getGameTime();
@@ -77,14 +77,14 @@ class UHCTask extends PluginTask
     	return $spectators;
     }
 
-    public function addBossBar($player)
+    public function addBossBar($player, $arena)
     {
-        $title = TextFormat::DARK_GRAY . "           " . TextFormat::BOLD . "[" . TextFormat::RESET . "" . TextFormat::BLUE . " Compact" . TextFormat::GOLD . "UHC " . TextFormat::DARK_GRAY . "" . TextFormat::BOLD . "]" . TextFormat::RESET . "\n\n" . TextFormat::GRAY . "Grace period end in: " . TextFormat::GOLD . gmdate("i:s", $this->pvp);
+        $title = TextFormat::DARK_GRAY . "   " . TextFormat::BOLD . "[" . TextFormat::RESET . "" . TextFormat::BLUE . " Compact" . TextFormat::GOLD . "UHC " . TextFormat::DARK_GRAY . "" . TextFormat::BOLD . "]" . TextFormat::RESET . "\n\n" . TextFormat::GRAY . "     MODE: " . TextFormat::GOLD . $arena->getMode();
         $pk = new AddPlayerPacket();
         $pk->uuid = UUID::fromRandom();
-        $pk->x = $player->getX();
-        $pk->y = $player->getY() - 5;
-        $pk->z = $player->getZ();
+        $pk->x = $player->getInstance()->getX();
+        $pk->y = $player->getInstance()->getY() - 5;
+        $pk->z = $player->getInstance()->getZ();
         $pk->eid = 11000;
         $pk->speedX = 0;
         $pk->speedY = 0;
@@ -99,10 +99,10 @@ class UHCTask extends PluginTask
         $pk->metadata = [Entity::DATA_FLAGS => [Entity::DATA_TYPE_LONG, $flags],
             Entity::DATA_NAMETAG => [Entity::DATA_TYPE_STRING, $title],
             Entity::DATA_LEAD_HOLDER_EID => [Entity::DATA_TYPE_LONG, -1]];
-        $player->dataPacket($pk);
+        $player->getInstance()->dataPacket($pk);
         $pk = new BossEventPacket();
         $pk->eid = 11000;
-        $player->dataPacket($pk);
+        $player->getInstance()->dataPacket($pk);
     }
 
     public function getHud($player)
@@ -114,7 +114,6 @@ class UHCTask extends PluginTask
     {
         $player->getInstance()->sendPopup("         " . TextFormat::DARK_GRAY . "" . TextFormat::BOLD . "[" . TextFormat::RESET . "" . TextFormat::BLUE . " Compact" . TextFormat::GOLD . "UHC " . TextFormat::DARK_GRAY . "" . TextFormat::BOLD . "]" . TextFormat::RESET . " " . TextFormat::YELLOW . "" . gmdate("i:s", $this->time) . "\n" . TextFormat::GRAY . "Type: " . TextFormat::GOLD . "HOST" . " " . TextFormat::GRAY . "Players Alive: " . TextFormat::GOLD . "" . count($this->getPlayersCount()) . " " . TextFormat::GRAY . "Spect: " . TextFormat::GOLD . "" . count($this->getSpectatorsCount()) . "\n         " . TextFormat::GRAY . "X: " . TextFormat::GOLD . "" . $player->getInstance()->getFloorX() . " " . TextFormat::GRAY . "Y: " . TextFormat::GOLD . "" . $player->getInstance()->getFloorY() . " " . TextFormat::GRAY . "Z: " . TextFormat::GOLD . "" . $player->getInstance()->getFloorZ());
     }
-
 
     public function onRun($tick)
     {
@@ -135,31 +134,32 @@ class UHCTask extends PluginTask
                 }
             }
             foreach ($arena->getPlayersEveryone() as $player) {
-                $player->getInstance()->sendPopup(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . "The whitelist will be activated in " . TextFormat::YELLOW . gmdate("i:s", $this->whitelist));
+                if($player->isOnline()) {
+                    $player->getInstance()->sendPopup(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::GRAY . "The whitelist will be activated in " . TextFormat::YELLOW . gmdate("i:s", $this->whitelist));
+                }
             }
         }
         if ($status == "starting") {
             $this->starting--;
             if ($this->starting <= 1) {
-                $arena->setStatus("grace");
+                $arena->setStatus("running");
                 $this->getPlugin()->configuration['Protection'] = false;
+                $this->getServer()->broadcastMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC" . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "Good luck and enjoy the game!");
                 foreach ($arena->getPlayers() as $player) {
-                    if($player->isOnline()) {
-                        $player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC" . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "Good luck and enjoy the game!");
-                        if ($player->isOnline()) {
-                            if (!$player->isHost()) {
-                                $player->getInstance()->teleport($this->getServer()->getLevelByName($arena->getName())->getSafeSpawn());
-                                $kits = new Kits();
-                                $player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "You were added to the whitelist!");
-                                $kits->getKitUHC($player->getInstance());
-                                $player->getInstance()->setWhitelisted(true);
-                                $stats = new PlayerStats($this->getPlugin());
-                                $stats->addUHC($player->getName());
-                            } else {
-                                $player->getInstance()->setWhitelisted(true);
-                                $player->getInstance()->teleport($this->getServer()->getLevelByName($arena->getName())->getSafeSpawn());
-                                $player->getInstance()->setGamemode(1);
-                            }
+                    if ($player->isOnline()) {
+                        if (!$player->isHost()) {
+                            $player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "You were added to the whitelist!");
+                            $player->getInstance()->teleport($this->getServer()->getLevelByName($arena->getName())->getSafeSpawn());
+                            $kits = new Kits();
+                            $kits->getKitMeetup($player->getInstance());
+                            $player->getInstance()->setWhitelisted(true);
+                            $stats = new PlayerStats($this->getPlugin());
+                            $stats->addUHC($player->getName());
+                        } else {
+                            //$player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "You were added to the whitelist!");
+                            $player->getInstance()->teleport($this->getServer()->getLevelByName($arena->getName())->getSafeSpawn());
+                            $player->getInstance()->setGamemode(1);
+                            $player->getInstance()->setWhitelisted(true);
                         }
                     }
                 }
@@ -170,58 +170,32 @@ class UHCTask extends PluginTask
                 }
             }
         }
-        if($status == "grace"){
-            $this->time++;
-            $this->pvp--;
-            $arena->setTimeRunning($this->time);
-            if($this->pvp <= 1){
-                $arena->setStatus("running");
-                $arena->setGraceTime($arena->getGraceTime() + (10 * 60));
-                $this->getPlugin()->configuration['PvP'] = true;
-                foreach ($arena->getPlayersEveryone() as $player) {
-                    if ($player->isOnline()) {
-                        $player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "Grace period is over!");
-                    }
-                }
-            }
-            foreach ($arena->getPlayersEveryone() as $player){
-                if($player->isOnline()) {
-                    if (!$player->isHost()) {
-                        $this->getHud($player);
-                        $this->addBossBar($player->getInstance());
-                    } else {
-                        $this->getHudHost($player);
-                        $this->addBossBar($player->getInstance());
-                    }
-                }
-            }
-        }
         if ($status == "running") {
             $this->time++;
             $arena->setTimeRunning($this->time);
             if($this->time == 5){
             	$this->getServer()->broadcastMessage(TextFormat::GRAY."[".TextFormat::BLUE."!".TextFormat::GRAY."] ".TextFormat::WHITE."El PvP se activa en el minuto ".gmdate("i:s", $arena->getGraceTime()));
             }
-            if($this->time == 10 * 60){
-            	$this->getServer()->broadcastMessage(TextFormat::GRAY."[".TextFormat::BLUE."!".TextFormat::GRAY."] ".TextFormat::WHITE."El PvP se activa en el minuto ".gmdate("i:s", $arena->getGraceTime()));
-            }
             foreach ($arena->getPlayersEveryone() as $player) {
                 if($player->isOnline()) {
                     if (!$player->isHost()) {
                         $this->getHud($player);
+                        $this->addBossBar($player, $arena);
                     } else {
                         $this->getHudHost($player);
+                        $this->addBossBar($player, $arena);
                     }
                 }
             }
             if($this->time >= ($pvp - 5) and $this->time <= ($pvp - 1)){
-                $this->getServer()->broadcastMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET.TextFormat::YELLOW."PvP enable in ".($pvp - $this->time)."!");
+            	$this->getServer()->broadcastMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET.TextFormat::YELLOW."PvP enable in ".($pvp - $this->time)."!");
             }
 
             if ($this->time == $pvp) {
                 $this->getPlugin()->configuration['PvP'] = true;
                 $this->getServer()->broadcastMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET.TextFormat::YELLOW."PvP enabled!");
             }
+
             if ($arena->getArenaActive() == false) {
                 if ($this->time == ($tpall - 10)) {
                     $this->getPlugin()->configuration['PvP'] = false;
@@ -255,7 +229,7 @@ class UHCTask extends PluginTask
                 }
                 if ($this->time == ($tpall + 30)) {
                     $this->getPlugin()->configuration['PvP'] = true;
-                    $arena->setTpallTime($tpall + (10 * 60));
+                    $arena->setTpallTime($tpall + (8 * 60));
                     foreach ($arena->getPlayersEveryone() as $player) {
                         if ($player->isOnline()) {
                             $player->getInstance()->sendMessage(TextFormat::BOLD . TextFormat::DARK_GRAY . "[ " . TextFormat::RESET . TextFormat::BLUE . "Compact" . TextFormat::GOLD . "UHC " . TextFormat::BOLD . TextFormat::DARK_GRAY . "] " . TextFormat::RESET . TextFormat::YELLOW . "PvP activated!");
