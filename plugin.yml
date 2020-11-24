@@ -1,0 +1,4 @@
+name: CompactUHC
+version: 1.0
+main: Compact\Loader
+api: [2.0.0]
