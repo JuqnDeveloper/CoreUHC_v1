@@ -7,9 +7,9 @@ use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\Listener;
 use pocketmine\Player;
 
-class Nofall implements Listener
+class Fireless implements Listener
 {
-
+	
     private $plugin;
 
     public function __construct(Loader $plugin)
@@ -24,10 +24,12 @@ class Nofall implements Listener
 
     public function onDamage(EntityDamageEvent $event)
     {
-        if ($this->getPlugin()->configuration['Scenarios']['Nofall'] == true) {
-            if ($event->getEntity() instanceof Player) {
-                if ($event->getCause() === EntityDamageEvent::CAUSE_FALL) {
+        if ($this->getPlugin()->configuration['Scenarios']['Fireless'] == true) {
+            $entity = $event->getEntity();
+            if ($entity instanceof Player) {
+                if ($event->getCause() === EntityDamageEvent::CAUSE_FIRE or $event->getCause() === EntityDamageEvent::CAUSE_FIRE_TICK or $event->getCause() === EntityDamageEvent::CAUSE_LAVA) {
                     $event->setCancelled();
+                    $entity->extinguish();
                 }
             }
         }
