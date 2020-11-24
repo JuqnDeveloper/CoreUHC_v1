@@ -64,7 +64,7 @@ class EventListener implements Listener
 
         if($arena->getMode() == "MEETO2" || $arena->getMode() == "MEETO3" || $arena->getMode() == "MEETO4" || $arena->getMode() == "MEETO5" || $arena->getMode() == "UHCTO2" || $arena->getMode() == "UHCTO3" || $arena->getMode() == "UHCTO4" || $arena->getMode() == "UHCTO5" || $arena->getMode() == "SIMTO2" || $arena->getMode() == "SIMTO3" || $arena->getMode() == "SIMTO4" || $arena->getMode() == "SIMTO5"){
             if($arena->getStatus() == "whitelist"){
-                $player->sendMessage(TextFandmat::GRAY."[".TextFormat::BLUE."!".TextFormat::GRAY."] ".TextFormat::WHITE."Use the /jointeam <number> command to enter a team before the whitelist time is up!");
+                $player->sendMessage(TextFormat::GRAY."[".TextFormat::BLUE."!".TextFormat::GRAY."] ".TextFormat::WHITE."Use the /jointeam <number> command to enter a team before the whitelist time is up!");
             }
         }
 
