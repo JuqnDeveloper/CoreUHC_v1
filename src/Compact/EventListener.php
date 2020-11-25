@@ -2,6 +2,7 @@
 
 namespace Compact;
 
+use Compact\Arena\Arena;
 use Compact\Database\PlayerStats;
 
 use pocketmine\entity\Effect;
@@ -9,6 +10,7 @@ use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\block\BlockPlaceEvent;
 use pocketmine\event\entity\EntityDamageEvent;
 use pocketmine\event\entity\EntityDamageByEntityEvent;
+use pocketmine\event\entity\EntityRegainHealthEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerMoveEvent;
@@ -50,6 +52,7 @@ class EventListener implements Listener
 
     public function onJoin(PlayerJoinEvent $event)
     {
+        /** @var Arena $arena */
         $arena = $this->getPlugin()->getArena();
         $player = $event->getPlayer();
         $name = $player->getName();
@@ -70,18 +73,31 @@ class EventListener implements Listener
 
         if ($arena->getStatus() == "running" || $arena->getStatus() == "grace") {
             if (isset($this->getPlugin()->data["spectators"][$player->getName()])) {
-                $player->teleport($this->getServer()->getDefaultLevel()->getSafeSpawn());
+                $player->teleport($this->getServer()->getLevelByName($arena->getLevelArena())->getSpawnLocation());
+                $player->setGamemode(3);
                 $player->sendMessage(TextFormat::RED . "You are a spectator in the UHC!");
                 return true;
             }
         }
-        
-        /**if($arena->getStatus() == "running" || "grace"){
-   	     if(!isset($this->getPlugin()->data['spectators'][$player->getName()])){
-   			if(!isset($this->getPlugin()->data['players'][$player->getName()])){
-   			}
-   		}
-        }**/
+
+        if ($arena->getStatus() == 'starting' || $arena->getStatus() == "running" || $arena->getStatus() == "grace" || $arena->getStatus() == "restarting") {
+            if (!isset($this->getPlugin()->data['players'][$player->getName()])) {
+                if (!isset($this->getPlugin()->data['spectators'][$player->getName()])) {
+                    $data = [
+                        'name' => $player->getName(),
+                        "team" => 0,
+                        "teamInt" => 0,
+                        "kills" => 0,
+                        "host" => false
+                    ];
+                    $this->getPlugin()->addSpectator($player->getName(), $data);
+
+                    $player->setGamemode(3);
+                    $player->getInventory()->clearAll();
+                    $player->teleport($player->getServer()->getLevelByName($arena->getLevelArena())->getSpawnLocation());
+                }
+            }
+        }
 
         if ($arena->getStatus() == null || $arena->getStatus() == "whitelist") {
             if (isset($this->getPlugin()->data["spectators"][$player->getName()])) {
@@ -300,15 +316,16 @@ class EventListener implements Listener
         }
     }
 
-    /**public function onRegain(EntityRegainHealthEvent $event)
-    {
+    public function onRegainHealth(EntityRegainHealthEvent $event){
         $entity = $event->getEntity();
-        if ($event->getRegainReason() == EntityRegainHealthEvent::CAUSE_EATING and $event->getRegainReason() == EntityRegainHealthEvent::CAUSE_REGEN) {
-            $event->setCancelled(true);
-            $entity->setHealth($entity->getHealth());
-            //$event->setAmount(0);
+        if($entity instanceof Player){
+            switch($event->getRegainReason()){
+                case EntityRegainHealthEvent::CAUSE_SATURATION:
+                    $event->setCancelled();
+                    break;
+            }
         }
-    }**/
+    }
 
     public function onConsume(PlayerItemConsumeEvent $event)
     {

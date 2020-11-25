@@ -5,7 +5,6 @@ namespace Compact\Task;
 use Compact\Loader;
 use Compact\Arena\Kits;
 use Compact\BossBar\BossEventPacket;
-use Compact\BossBar\BossHealth;
 use Compact\Database\PlayerStats;
 
 use pocketmine\scheduler\PluginTask;
@@ -188,10 +187,10 @@ class UHCTask extends PluginTask
                 if($player->isOnline()) {
                     if (!$player->isHost()) {
                         $this->getHud($player);
-                        $this->addBossBar($player->getInstance());
+                        //$this->addBossBar($player->getInstance());
                     } else {
                         $this->getHudHost($player);
-                        $this->addBossBar($player->getInstance());
+                        //$this->addBossBar($player->getInstance());
                     }
                 }
             }

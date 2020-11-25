@@ -2,8 +2,6 @@
 
 namespace Compact;
 
-use Compact\EventListener;
-
 use Compact\BossBar\MoveWither;
 
 use Compact\Arena\Arena;
@@ -49,6 +47,7 @@ use Compact\Task\WinnerTask;
 
 use Compact\TwitterAPIExchange;
 
+use pocketmine\Player;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\Config;
 use pocketmine\utils\TextFormat;
@@ -92,7 +91,7 @@ class Loader extends PluginBase
         'prefix' => ''
     ];
 
-    public $teamsAvailable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+    public $teamsAvailable = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40];
 
     public $noclean = [];
     public $taskclean = [];
@@ -146,7 +145,7 @@ class Loader extends PluginBase
         ];
         $this->data['arena'] = new Arena($this, $data);
         
-        $this->getServer()->getScheduler()->scheduleRepeatingTask(new MoveWither($this), 30);
+        //$this->getServer()->getScheduler()->scheduleRepeatingTask(new MoveWither($this), 30);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new HealthBarTask($this), 25);
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new MessagesAutomaticTask($this), 1 * 60 * 15);
         
@@ -363,7 +362,7 @@ class Loader extends PluginBase
         $this->getServer()->getScheduler()->scheduleRepeatingTask(new SimulatorTeamTask($this), 25);
     }
     
-    public function winnerTask(\pocketmine\Player $player){
+    public function winnerTask(Player $player){
     	$this->getServer()->getScheduler()->scheduleRepeatingTask(new WinnerTask($this, $player), 25);
     }
 

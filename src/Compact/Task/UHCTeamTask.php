@@ -195,10 +195,10 @@ class UHCTeamTask extends PluginTask
             foreach ($arena->getPlayersEveryone() as $player) {
                 if ($player->isOnline()) {
                     if (!$player->isHost()) {
-                        $this->addBossBar($player);
+                        //$this->addBossBar($player);
                         $this->getHud($player);
                     } else {
-                        $this->addBossBar($player);
+                        //$this->addBossBar($player);
                         $this->getHudHost($player);
                     }
                 }

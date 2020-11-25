@@ -5,7 +5,6 @@ namespace Compact\Task;
 use Compact\Loader;
 use Compact\Arena\Kits;
 use Compact\BossBar\BossEventPacket;
-use Compact\BossBar\BossHealth;
 use Compact\Database\PlayerStats;
 
 use pocketmine\scheduler\PluginTask;
@@ -180,10 +179,10 @@ class MeetupTask extends PluginTask
                 if($player->isOnline()) {
                     if (!$player->isHost()) {
                         $this->getHud($player);
-                        $this->addBossBar($player, $arena);
+                        //$this->addBossBar($player, $arena);
                     } else {
                         $this->getHudHost($player);
-                        $this->addBossBar($player, $arena);
+                        //$this->addBossBar($player, $arena);
                     }
                 }
             }

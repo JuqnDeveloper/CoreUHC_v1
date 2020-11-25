@@ -182,10 +182,10 @@ class SimulatorTask extends PluginTask
                 if($player->isOnline()) {
                     if (!$player->isHost()) {
                         $this->getHud($player);
-                        $this->addBossBar($player, $arena);
+                        //$this->addBossBar($player, $arena);
                     } else {
                         $this->getHudHost($player);
-                        $this->addBossBar($player, $arena);
+                        //$this->addBossBar($player, $arena);
                     }
                 }
             }
